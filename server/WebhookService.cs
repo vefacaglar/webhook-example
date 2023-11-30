@@ -1,0 +1,26 @@
+namespace webhook_example
+{
+    public record Subscription(string Topic, string Callback);
+    public record PublishRequest(string Topic, object Message);
+
+    public class WebhookService
+    {
+        private readonly List<Subscription> _subscriptions = new();
+        private readonly HttpClient _httpClient = new();
+
+        public void Subscribe(Subscription subscription)
+        {
+            _subscriptions.Add(subscription);
+        }
+
+        public async Task PublishMessage(string topic, object message)
+        {
+            var subscribedWebHooks = _subscriptions.Where(x => x.Topic == topic);
+
+            foreach (var webhook in subscribedWebHooks)
+            {
+                await _httpClient.PostAsJsonAsync(webhook.Callback, message);
+            }
+        }
+    }
+}
